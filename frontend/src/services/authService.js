@@ -8,25 +8,46 @@ export const login = async (email, password) => {
 			body: JSON.stringify({ email, password }),
 		});
 
-		if (!response.ok) throw new Error("Credenciales incorrectas");
+		if (!response.ok)
+			throw new Error("Credenciales incorrectas" + response.status);
 
-		const text = await response.text();
+		// Verificar el tipo de respuesta del backend
+		const contentType = response.headers.get("Content-Type");
+		let token = "";
 
-		// Si el backend devuelve "Bearer <token>", extraemos solo el token
-		const token = text.startsWith("Bearer ") ? text.split(" ")[1] : text;
+		if (contentType && contentType.includes("application/json")) {
+			// Si la respuesta es JSON, extraer el token de la propiedad correcta
+			const data = await response.json();
+			token = data.token; // Asegúrate de que el backend envíe el token en este campo
+		} else {
+			// Si la respuesta es texto plano (ej. "Bearer <token>")
+			const text = await response.text();
+			token = text.startsWith("Bearer ") ? text.split(" ")[1] : text;
+		}
 
 		if (token) {
 			localStorage.setItem("token", token);
-			return token;
+		} else {
+			console.log("El token es inválido:", token);
 		}
 
-		throw new Error("No se recibió un token válido");
+		return token;
 	} catch (error) {
 		console.error("Error en la autenticación:", error);
 		throw error;
 	}
 };
 
-export const getToken = () => localStorage.getItem("token");
+export const getToken = () => {
+	if (typeof window !== "undefined") {
+		return localStorage.getItem("token");
+	}
+	return null;
+};
 
-export const logout = () => localStorage.removeItem("token");
+export const logout = () => {
+	if (typeof window !== "undefined") {
+		localStorage.removeItem("token");
+		console.log("Token eliminado de localStorage");
+	}
+};
