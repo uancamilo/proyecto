@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
-
 export default function Productos() {
 	const API_URL = "http://localhost:8080/productos";
 	const [productos, setProductos] = useState([]);
 	const router = useRouter();
 
 	useEffect(() => {
+		const redirectToLogin = () => {
+			localStorage.removeItem("token");
+			router.push("/login");
+		};
+
 		const fetchProductos = async () => {
 			if (typeof window === "undefined") return;
 
 			const token = localStorage.getItem("token");
-			if (!token) {
-				router.push("/login"); // Redirigir si no hay token
-				return;
-			}
+			if (!token) return redirectToLogin();
 
 			try {
 				const response = await fetch(API_URL, {
@@ -26,19 +27,13 @@ export default function Productos() {
 					},
 				});
 
-				if (response.status === 401) {
-					console.error("Token inválido o expirado");
-					localStorage.removeItem("token");
-					router.push("/login"); // Redirigir si el token es inválido
-					return;
-				}
-
-				if (!response.ok) throw new Error("Error en la petición");
+				if (!response.ok) return redirectToLogin();
 
 				const data = await response.json();
 				setProductos(data);
 			} catch (error) {
 				console.error("Error en la solicitud:", error);
+				redirectToLogin();
 			}
 		};
 
