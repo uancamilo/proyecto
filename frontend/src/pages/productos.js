@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 export default function Productos() {
 	const API_URL = "http://localhost:8080/productos";
 	const [productos, setProductos] = useState([]);
+	const [loading, setLoading] = useState(true);
 	const router = useRouter();
 
 	useEffect(() => {
@@ -34,11 +35,17 @@ export default function Productos() {
 			} catch (error) {
 				console.error("Error en la solicitud:", error);
 				redirectToLogin();
+			} finally {
+				setLoading(false);
 			}
 		};
 
 		fetchProductos();
 	}, [router]);
+
+	if (loading) {
+		return <p>Cargando...</p>;
+	}
 
 	return (
 		<div>
