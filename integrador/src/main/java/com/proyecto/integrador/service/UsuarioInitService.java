@@ -2,6 +2,7 @@ package com.proyecto.integrador.service;
 
 import com.proyecto.integrador.model.Usuario;
 import com.proyecto.integrador.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
@@ -9,9 +10,10 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class UsuarioInitService {
 
-    private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UsuarioRepository usuarioRepository;
 
+    @Autowired
     public UsuarioInitService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
@@ -25,7 +27,6 @@ public class UsuarioInitService {
             usuario.setEmail("admin@email.com");
             usuario.setPassword(passwordEncoder.encode("admin123"));
             usuarioRepository.save(usuario);
-            System.out.println("Usuario inicial creado: admin@email.com");
         }
     }
 }

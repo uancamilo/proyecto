@@ -1,5 +1,6 @@
 package com.proyecto.integrador.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -16,7 +17,8 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @JsonIgnore
+    @Column(nullable = false, length = 255)
     private String password;
 
     // Constructor vacío necesario para JPA

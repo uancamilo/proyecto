@@ -5,17 +5,35 @@ import { login } from "../services/authService";
 export default function Login() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showModal, setShowModal] = useState(false);
+	const [modalMessage, setModalMessage] = useState("Iniciando sesión...");
+	const [isError, setIsError] = useState(false);
 	const router = useRouter();
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		try {
-			const token = await login(email, password);
-			localStorage.setItem("token", token);
-			router.push("/productos");
-		} catch (error) {
-			alert(error.message);
-		}
+		setShowModal(true);
+		setModalMessage("Iniciando sesión...");
+		setIsError(false);
+
+		setTimeout(async () => {
+			try {
+				const token = await login(email, password);
+				localStorage.setItem("token", token);
+				setModalMessage("Inicio de sesión exitoso. Redirigiendo...");
+				setTimeout(() => {
+					setShowModal(false);
+					router.push("/productos");
+				}, 1500);
+			} catch (error) {
+				setModalMessage("Error al iniciar sesión. Verifica tus credenciales.");
+				setIsError(true);
+			}
+		}, 2000);
+	};
+
+	const handleCloseModal = () => {
+		setShowModal(false);
 	};
 
 	return (
@@ -47,6 +65,7 @@ export default function Login() {
 							id="password"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
+							autoComplete="current-password"
 							required
 						/>
 						<label htmlFor="password">Contraseña</label>
@@ -67,6 +86,28 @@ export default function Login() {
 					</button>
 				</form>
 			</div>
+			{/* Modal dinámico */}
+			{showModal && (
+				<>
+					<div className="modal fade show d-block" tabIndex="-1">
+						<div className="modal-dialog">
+							<div className="modal-content">
+								<div className="modal-header">
+									<h1 className="modal-title fs-5">{modalMessage}</h1>
+									{isError && (
+										<button
+											type="button"
+											className="btn-close"
+											onClick={handleCloseModal}
+										></button>
+									)}
+								</div>
+							</div>
+						</div>
+					</div>
+					<div className="modal-backdrop fade show" aria-hidden="true"></div>
+				</>
+			)}
 		</main>
 	);
 }
