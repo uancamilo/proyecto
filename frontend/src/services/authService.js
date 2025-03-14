@@ -8,32 +8,15 @@ export const login = async (email, password) => {
 			body: JSON.stringify({ email, password }),
 		});
 
-		if (!response.ok)
-			throw new Error("Credenciales incorrectas" + response.status);
+		const data = await response.json();
 
-		// Verificar el tipo de respuesta del backend
-		const contentType = response.headers.get("Content-Type");
-		let token = "";
-
-		if (contentType && contentType.includes("application/json")) {
-			// Si la respuesta es JSON, extraer el token de la propiedad correcta
-			const data = await response.json();
-			token = data.token; // Asegúrate de que el backend envíe el token en este campo
-		} else {
-			// Si la respuesta es texto plano (ej. "Bearer <token>")
-			const text = await response.text();
-			token = text.startsWith("Bearer ") ? text.split(" ")[1] : text;
+		if (data.token) {
+			localStorage.setItem("token", data.token);
+			return data.token;
 		}
-
-		if (token) {
-			localStorage.setItem("token", token);
-		} else {
-			console.log("El token es inválido:", token);
-		}
-
-		return token;
+		return null;
 	} catch (error) {
-		console.error("Error en la autenticación:", error);
+		console.error(error);
 		throw error;
 	}
 };

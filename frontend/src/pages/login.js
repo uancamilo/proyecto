@@ -12,24 +12,20 @@ export default function Login() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		setShowModal(true);
-		setModalMessage("Iniciando sesión...");
-		setIsError(false);
-
-		setTimeout(async () => {
-			try {
-				const token = await login(email, password);
-				localStorage.setItem("token", token);
-				setModalMessage("Inicio de sesión exitoso. Redirigiendo...");
-				setTimeout(() => {
-					setShowModal(false);
-					router.push("/productos");
-				}, 1500);
-			} catch (error) {
-				setModalMessage("Error al iniciar sesión. Verifica tus credenciales.");
+		try {
+			const token = await login(email, password);
+			console.log("Token:", token);
+			console.log(typeof token);
+			if (token && typeof token === "string" && token.startsWith("Bearer ")) {
+				router.push("/productos");
+			} else {
+				setModalMessage("Error al iniciar sesión");
 				setIsError(true);
+				setShowModal(true);
 			}
-		}, 2000);
+		} catch (error) {
+			console.error("Error al iniciar sesión:", error);
+		}
 	};
 
 	const handleCloseModal = () => {
