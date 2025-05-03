@@ -12,19 +12,16 @@ export default function Login() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		setModalMessage("Iniciando sesión...");
 		try {
 			const token = await login(email, password);
-			console.log("Token:", token);
-			console.log(typeof token);
-			if (token && typeof token === "string" && token.startsWith("Bearer ")) {
-				router.push("/productos");
-			} else {
-				setModalMessage("Error al iniciar sesión");
-				setIsError(true);
-				setShowModal(true);
+			if (!token) {
+				throw new Error("Usuario o contraseña incorrectos");
 			}
+			router.push("/productos");
+
 		} catch (error) {
-			console.error("Error al iniciar sesión:", error);
+			console.error(error);
 		}
 	};
 

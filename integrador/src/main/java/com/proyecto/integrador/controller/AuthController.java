@@ -9,6 +9,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -34,7 +35,9 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
             );
 
-            String token = jwtService.generateToken(authRequest.getEmail());
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            String token = jwtService.generateToken(userDetails);
             response.put("token", "Bearer " + token);
 
             return ResponseEntity.ok(response);

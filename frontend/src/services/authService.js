@@ -7,16 +7,15 @@ export const login = async (email, password) => {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, password }),
 		});
-
+		if (!response.ok) throw new Error("Error en la autenticación");
 		const data = await response.json();
-
 		if (data.token) {
-			localStorage.setItem("token", data.token);
+			localStorage.setItem("auth_token", data.token);
 			return data.token;
 		}
 		return null;
 	} catch (error) {
-		console.error(error);
+		console.error("Login error:", error);
 		throw error;
 	}
 };

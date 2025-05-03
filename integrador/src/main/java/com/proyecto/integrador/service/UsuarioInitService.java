@@ -26,6 +26,7 @@ public class UsuarioInitService {
             usuario.setNombre("Admin");
             usuario.setEmail("admin@email.com");
             usuario.setPassword(passwordEncoder.encode("admin123"));
+            usuario.setRol("ADMIN");
             usuarioRepository.save(usuario);
         }
     }
