@@ -2,17 +2,15 @@ package com.proyecto.integrador.controller;
 
 import com.proyecto.integrador.dto.AuthRequest;
 import com.proyecto.integrador.service.JwtService;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -28,25 +26,30 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody AuthRequest authRequest) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
             );
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
             String token = jwtService.generateToken(userDetails);
-            response.put("token", "Bearer " + token);
 
-            return ResponseEntity.ok(response);
-        } catch (BadCredentialsException e) {
-            response.put("error", "Credenciales incorrectas");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            // Crear cookie HttpOnly con el token
+            ResponseCookie jwtCookie = ResponseCookie.from("jwt", token)
+                    .httpOnly(true)
+                    .secure(true) // solo HTTPS en producción
+                    .path("/")
+                    .maxAge(60 * 60) // 1 hora
+                    .sameSite("Strict")
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                    .body(Map.of("message", "Login exitoso"));
+
         } catch (AuthenticationException e) {
-            response.put("error", "Error en la autenticación");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            return ResponseEntity.status(401).body(Map.of("error", "Credenciales inválidas"));
         }
     }
 }
