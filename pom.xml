@@ -105,6 +105,7 @@
 
     <build>
         <plugins>
+
             <!-- Plugin para tratar recursos con codificación UTF-8 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -115,11 +116,20 @@
                 </configuration>
             </plugin>
 
-            <!-- Plugin de Spring Boot -->
+            <!-- Plugin de Spring Boot para empaquetar el JAR -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.4.3</version> <!-- usa tu versión real de Spring Boot -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
+
         </plugins>
     </build>
 
