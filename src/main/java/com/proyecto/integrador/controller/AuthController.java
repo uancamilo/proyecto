@@ -38,10 +38,10 @@ public class AuthController {
             // Crear cookie HttpOnly con el token
             ResponseCookie jwtCookie = ResponseCookie.from("jwt", token)
                     .httpOnly(true)
-                    .secure(true) // solo HTTPS en producción
+                    .secure(true)
                     .path("/")
-                    .maxAge(60 * 60) // 1 hora
-                    .sameSite("Strict")
+                    .maxAge(60 * 60)
+                    .sameSite("None")
                     .build();
 
             return ResponseEntity.ok()
