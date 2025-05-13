@@ -22,7 +22,7 @@ public class AdminController {
                     @ApiResponse(responseCode = "403", description = "Acceso denegado")
             }
     )
-    @GetMapping("/privado")
+    @GetMapping("/dashboard")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> privadoAdmin() {
         return ResponseEntity.ok(Map.of("message", "Acceso concedido solo para administradores"));

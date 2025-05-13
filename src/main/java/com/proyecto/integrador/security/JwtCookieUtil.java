@@ -16,4 +16,17 @@ public class JwtCookieUtil {
 
         response.setHeader("Set-Cookie", jwtCookie.toString());
     }
+
+    public static void clearJwtCookie(HttpServletResponse response, boolean isProduction) {
+        ResponseCookie clearedCookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(isProduction)
+                .sameSite(isProduction ? "None" : "Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        response.setHeader("Set-Cookie", clearedCookie.toString());
+    }
+
 }

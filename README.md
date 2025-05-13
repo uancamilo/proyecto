@@ -75,12 +75,12 @@ python scripts/analitica.py
 
 ## ✅ Endpoints principales
 
-| Método | Ruta              | Descripción                         | Acceso      |
-|--------|-------------------|-------------------------------------|-------------|
-| POST   | `/auth/login`     | Login, genera cookie JWT            | Público     |
-| POST   | `/auth/logout`    | Logout, elimina cookie JWT          | Autenticado |
-| GET    | `/admin/privado`  | Prueba de acceso para admins        | ADMIN       |
-| GET    | `/user/perfil`    | Perfil del usuario autenticado      | USER/ADMIN  |
+| Método | Ruta               | Descripción                         | Acceso      |
+|--------|--------------------|-------------------------------------|-------------|
+| POST   | `/auth/login`      | Login, genera cookie JWT            | Público     |
+| POST   | `/auth/logout`     | Logout, elimina cookie JWT          | Autenticado |
+| GET    | `/admin/dashboard` | Prueba de acceso para admins        | ADMIN       |
+| GET    | `/user/perfil`     | Perfil del usuario autenticado      | USER/ADMIN  |
 
 ---
 

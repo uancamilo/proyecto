@@ -2,15 +2,17 @@ package com.proyecto.integrador.controller;
 
 import com.proyecto.integrador.dto.AuthRequest;
 import com.proyecto.integrador.dto.RegisterRequest;
-import com.proyecto.integrador.model.Usuario;
 import com.proyecto.integrador.model.UsuarioUser;
 import com.proyecto.integrador.repository.UsuarioRepository;
+import com.proyecto.integrador.security.JwtCookieUtil;
 import com.proyecto.integrador.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,9 @@ import java.util.Map;
 @RequestMapping("/auth")
 @Tag(name = "Autenticación", description = "Operaciones relacionadas con login y registro de usuarios")
 public class AuthController {
+
+    @Value("${app.env.production:false}")
+    private boolean isProduction;
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -150,4 +155,10 @@ public class AuthController {
         return ResponseEntity.status(201).body(Map.of("message", "Usuario registrado"));
     }
 
+    @Operation(summary = "Cerrar sesión", description = "Elimina la cookie JWT del cliente")
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        JwtCookieUtil.clearJwtCookie(response, isProduction);
+        return ResponseEntity.ok(Map.of("message", "Sesión cerrada correctamente"));
+    }
 }
