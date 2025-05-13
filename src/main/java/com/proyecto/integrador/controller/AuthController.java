@@ -1,12 +1,14 @@
 package com.proyecto.integrador.controller;
 
-import com.proyecto.integrador.dto.AuthRequest;
-import com.proyecto.integrador.dto.RegisterRequest;
-import com.proyecto.integrador.dto.UsuarioResponse;
+import com.proyecto.integrador.dto.*;
 import com.proyecto.integrador.model.UsuarioUser;
 import com.proyecto.integrador.repository.UsuarioRepository;
 import com.proyecto.integrador.security.JwtCookieUtil;
 import com.proyecto.integrador.service.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,8 +50,31 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Operation(
+            summary = "Iniciar sesión",
+            description = "Autentica al usuario y devuelve una cookie JWT HttpOnly.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Login exitoso",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = AuthResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Credenciales inválidas",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(example = "{\"error\": \"Credenciales inválidas\"}")
+                            )
+                    )
+            }
+    )
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
@@ -68,12 +93,43 @@ public class AuthController {
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                    .body(Map.of("message", "Login exitoso"));
+                    .body(new AuthResponse("Login exitoso"));
 
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Credenciales inválidas"));
+            return ResponseEntity.status(401)
+                    .body(new AuthResponse("Credenciales inválidas"));
         }
     }
+
+    @Operation(
+            summary = "Registrar nuevo usuario",
+            description = "Crea un nuevo usuario con rol USER por defecto",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterRequest.class)
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Usuario registrado exitosamente",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = RegisterResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Email ya registrado",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(example = "{\"error\": \"El email ya está en uso\"}")
+                            )
+                    )
+            }
+    )
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
@@ -88,15 +144,61 @@ public class AuthController {
 
         usuarioRepository.save(nuevo);
 
-        return ResponseEntity.status(201).body(Map.of("message", "Usuario registrado"));
+        return ResponseEntity
+                .status(201)
+                .body(new RegisterResponse("Usuario registrado correctamente"));
     }
 
+    @Operation(
+            summary = "Cerrar sesión del usuario",
+            description = "Elimina la cookie JWT del navegador para cerrar sesión.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Sesión cerrada correctamente",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = AuthResponse.class)
+                            )
+                    )
+            }
+    )
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    public ResponseEntity<AuthResponse> logout(HttpServletResponse response) {
         JwtCookieUtil.clearJwtCookie(response, isProduction);
-        return ResponseEntity.ok(Map.of("message", "Sesión cerrada correctamente"));
+        return ResponseEntity.ok(new AuthResponse("Sesión cerrada correctamente"));
     }
 
+    @Operation(
+            summary = "Obtener información del usuario autenticado",
+            description = "Devuelve los datos del usuario autenticado basándose en el token JWT",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Datos del usuario autenticado",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UsuarioResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "No autenticado",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(example = "{\"error\": \"No autenticado\"}")
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Usuario no encontrado en base de datos",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(example = "{\"error\": \"Usuario no encontrado\"}")
+                            )
+                    )
+            }
+    )
     @GetMapping("/me")
     public ResponseEntity<?> me(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {

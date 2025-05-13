@@ -14,6 +14,8 @@ public class RegisterRequest {
     @Schema(example = "claveSegura123", description = "Contraseña sin encriptar")
     private String password;
 
+    public RegisterRequest() {}
+
     public String getNombre() {
         return nombre;
     }
