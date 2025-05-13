@@ -23,6 +23,18 @@ public abstract class Usuario {
     @Column(nullable = false, length = 255)
     private String password;
 
+    @Transient
+    public String getRol() {
+        if (this instanceof UsuarioAdmin) {
+            return "ROLE_ADMIN";
+        } else if (this instanceof UsuarioUser) {
+            return "ROLE_USER";
+        } else {
+            return "ROLE_UNKNOWN";
+        }
+    }
+
+
     public Usuario() {}
 
     public Usuario(String nombre, String email, String password) {

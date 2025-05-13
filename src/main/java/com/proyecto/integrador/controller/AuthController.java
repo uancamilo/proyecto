@@ -2,15 +2,12 @@ package com.proyecto.integrador.controller;
 
 import com.proyecto.integrador.dto.AuthRequest;
 import com.proyecto.integrador.dto.RegisterRequest;
+import com.proyecto.integrador.dto.UsuarioResponse;
 import com.proyecto.integrador.model.UsuarioUser;
 import com.proyecto.integrador.repository.UsuarioRepository;
 import com.proyecto.integrador.security.JwtCookieUtil;
 import com.proyecto.integrador.service.JwtService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.*;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -22,12 +19,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.proyecto.integrador.model.Usuario;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@Tag(name = "Autenticación", description = "Operaciones relacionadas con login y registro de usuarios")
 public class AuthController {
 
     @Value("${app.env.production:false}")
@@ -50,41 +48,8 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Operation(
-            summary = "Iniciar sesión",
-            description = "Autentica al usuario y devuelve una cookie JWT HttpOnly en la respuesta.",
-            requestBody = @RequestBody(
-                    required = true,
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = AuthRequest.class)
-                    )
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Login exitoso. Cookie JWT enviada",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = "{\"message\": \"Login exitoso\"}"
-                                    )
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Credenciales inválidas",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(
-                                            example = "{\"error\": \"Credenciales inválidas\"}"
-                                    )
-                            )
-                    )
-            }
-    )
     @PostMapping("/login")
-    public ResponseEntity<?> login(@org.springframework.web.bind.annotation.RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
@@ -95,10 +60,10 @@ public class AuthController {
 
             ResponseCookie jwtCookie = ResponseCookie.from("jwt", token)
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(isProduction)
                     .path("/")
                     .maxAge(60 * 60)
-                    .sameSite("None")
+                    .sameSite(isProduction ? "None" : "Lax")
                     .build();
 
             return ResponseEntity.ok()
@@ -110,35 +75,6 @@ public class AuthController {
         }
     }
 
-    @Operation(
-            summary = "Registrar nuevo usuario",
-            description = "Crea un usuario con rol USER por defecto",
-            requestBody = @RequestBody(
-                    required = true,
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = RegisterRequest.class)
-                    )
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "201",
-                            description = "Usuario creado exitosamente",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(example = "{\"message\": \"Usuario registrado\"}")
-                            )
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Email ya registrado",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(example = "{\"error\": \"El email ya está en uso\"}")
-                            )
-                    )
-            }
-    )
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (usuarioRepository.existsByEmail(request.getEmail())) {
@@ -155,10 +91,30 @@ public class AuthController {
         return ResponseEntity.status(201).body(Map.of("message", "Usuario registrado"));
     }
 
-    @Operation(summary = "Cerrar sesión", description = "Elimina la cookie JWT del cliente")
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
         JwtCookieUtil.clearJwtCookie(response, isProduction);
         return ResponseEntity.ok(Map.of("message", "Sesión cerrada correctamente"));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+        }
+
+        UsuarioResponse response = new UsuarioResponse(
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
 }
