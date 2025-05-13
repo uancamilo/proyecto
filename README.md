@@ -1,7 +1,7 @@
 
 # 🛠️ Proyecto Integrador
 
-Este es un sistema web completo construido con **Java + Spring Boot (backend)**, **ReactJS (frontend)** y **Python + Pandas (módulo de analítica)**. Implementa autenticación segura con **JWT almacenado en cookies HttpOnly**, control de acceso basado en roles, y una arquitectura modular preparada para crecimiento.
+Este es un sistema backend construido con **Java + Spring Boot** para gestión de usuarios y seguridad, y un módulo de analítica con **Python + Pandas**. Implementa autenticación segura con **JWT almacenado en cookies HttpOnly**, control de acceso basado en roles, y una arquitectura modular preparada para crecimiento.
 
 ---
 
@@ -15,15 +15,9 @@ Este es un sistema web completo construido con **Java + Spring Boot (backend)**,
 - MySQL
 - Springdoc OpenAPI (Swagger)
 
-### 🌐 Frontend
-- ReactJS
-- Fetch API con `credentials: "include"`
-- Bootstrap / TailwindCSS (opcional)
-
 ### 📊 Analítica
 - Python 3
 - Pandas
-- Script ejecutable desde Java o como microservicio (pendiente de integración)
 
 ---
 
@@ -38,14 +32,6 @@ Este es un sistema web completo construido con **Java + Spring Boot (backend)**,
         ├── security
         ├── service
         └── config
-/frontend
-  └── src/
-        ├── components
-        ├── pages
-        └── services
-/python
-  └── scripts/
-        └── analitica.py
 ```
 
 ---
@@ -78,17 +64,7 @@ cd backend
 
 - Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
-### 3. Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-- Frontend por defecto en: [http://localhost:3000](http://localhost:3000)
-
-### 4. Python (analítica)
+### 3. Python (analítica)
 
 ```bash
 cd python
@@ -118,21 +94,12 @@ spring.jpa.open-in-view=false
 spring.datasource.url=jdbc:mysql://localhost:3306/integrador
 ```
 
-### Fetch ejemplo en React
-
-```js
-fetch("http://localhost:8080/admin/privado", {
-  method: "GET",
-  credentials: "include"
-});
-```
-
 ---
 
 ## 🧔 Autor
 
 - **Juan Camilo Serna Madrid**
-- [GitHub](https://github.com/tuusuario)
+- [GitHub](https://github.com/uancamilo)
 
 ---
 
