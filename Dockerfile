@@ -8,4 +8,10 @@ RUN ./mvnw clean package -DskipTests
 FROM eclipse-temurin:17
 WORKDIR /app
 COPY --from=build /app/target/integrador-0.0.1-SNAPSHOT.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Puerto por defecto
+EXPOSE 8080
+
+# Parámetros JVM configurables
+ENV JAVA_OPTS=""
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
