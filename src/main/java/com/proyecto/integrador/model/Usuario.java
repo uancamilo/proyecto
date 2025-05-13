@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
-@Table
-public class Usuario {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "tipo_usuario", discriminatorType = DiscriminatorType.STRING)
+@Table(name = "usuario")
+public abstract class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,21 +23,15 @@ public class Usuario {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(nullable = false)
-    private String rol;
+    public Usuario() {}
 
-    public Usuario() {
-    }
-
-    public Usuario(String nombre, String email, String password, String rol) {
+    public Usuario(String nombre, String email, String password) {
         this.nombre = nombre;
         this.email = email;
         this.password = password;
-        this.rol = rol;
     }
 
-    // Getters y setters
-
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -47,7 +43,4 @@ public class Usuario {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-
-    public String getRol() { return rol; }
-    public void setRol(String rol) { this.rol = rol; }
 }

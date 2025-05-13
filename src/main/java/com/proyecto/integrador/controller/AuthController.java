@@ -1,6 +1,10 @@
 package com.proyecto.integrador.controller;
 
 import com.proyecto.integrador.dto.AuthRequest;
+import com.proyecto.integrador.dto.RegisterRequest;
+import com.proyecto.integrador.model.Usuario;
+import com.proyecto.integrador.model.UsuarioUser;
+import com.proyecto.integrador.repository.UsuarioRepository;
 import com.proyecto.integrador.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.*;
@@ -14,21 +18,31 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@Tag(name = "Autenticación", description = "Operaciones relacionadas con login")
+@Tag(name = "Autenticación", description = "Operaciones relacionadas con login y registro de usuarios")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService) {
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            JwtService jwtService,
+            UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder
+    ) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Operation(
@@ -64,7 +78,6 @@ public class AuthController {
                     )
             }
     )
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@org.springframework.web.bind.annotation.RequestBody AuthRequest authRequest) {
         try {
@@ -91,4 +104,50 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Credenciales inválidas"));
         }
     }
+
+    @Operation(
+            summary = "Registrar nuevo usuario",
+            description = "Crea un usuario con rol USER por defecto",
+            requestBody = @RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterRequest.class)
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Usuario creado exitosamente",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(example = "{\"message\": \"Usuario registrado\"}")
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Email ya registrado",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(example = "{\"error\": \"El email ya está en uso\"}")
+                            )
+                    )
+            }
+    )
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        if (usuarioRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El email ya está en uso"));
+        }
+
+        UsuarioUser nuevo = new UsuarioUser();
+        nuevo.setNombre(request.getNombre());
+        nuevo.setEmail(request.getEmail());
+        nuevo.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        usuarioRepository.save(nuevo);
+
+        return ResponseEntity.status(201).body(Map.of("message", "Usuario registrado"));
+    }
+
 }
