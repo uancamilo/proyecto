@@ -1,70 +1,141 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# 🛠️ Proyecto Integrador
 
-## Available Scripts
+Este es un sistema web completo construido con **Java + Spring Boot (backend)**, **ReactJS (frontend)** y **Python + Pandas (módulo de analítica)**. Implementa autenticación segura con **JWT almacenado en cookies HttpOnly**, control de acceso basado en roles, y una arquitectura modular preparada para crecimiento.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🚀 Tecnologías utilizadas
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🔧 Backend
+- Java 17
+- Spring Boot 3.x
+- Spring Security + JWT
+- JPA / Hibernate
+- MySQL
+- Springdoc OpenAPI (Swagger)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 🌐 Frontend
+- ReactJS
+- Fetch API con `credentials: "include"`
+- Bootstrap / TailwindCSS (opcional)
 
-### `npm test`
+### 📊 Analítica
+- Python 3
+- Pandas
+- Script ejecutable desde Java o como microservicio (pendiente de integración)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 📁 Estructura del proyecto
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+/backend
+  └── src/main/java/com/proyecto/integrador
+        ├── controller
+        ├── model
+        ├── repository
+        ├── security
+        ├── service
+        └── config
+/frontend
+  └── src/
+        ├── components
+        ├── pages
+        └── services
+/python
+  └── scripts/
+        └── analitica.py
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🔐 Seguridad y autenticación
 
-### `npm run eject`
+- Autenticación con JWT (generado en backend).
+- Token entregado como cookie `HttpOnly`, `Secure`, `SameSite=None`.
+- Control de acceso mediante roles (`hasRole("ADMIN")`, `hasRole("USER")`).
+- Rutas protegidas (`/admin/**`, `/user/**`).
+- Logout que elimina la cookie del navegador.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🧪 Cómo probar localmente
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 1. Clonar el repositorio
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+git clone https://github.com/tuusuario/proyecto-integrador.git
+cd proyecto-integrador
+```
 
-## Learn More
+### 2. Backend
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cd backend
+./mvnw spring-boot:run
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
-### Code Splitting
+### 3. Frontend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-### Analyzing the Bundle Size
+- Frontend por defecto en: [http://localhost:3000](http://localhost:3000)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### 4. Python (analítica)
 
-### Making a Progressive Web App
+```bash
+cd python
+python scripts/analitica.py
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## ✅ Endpoints principales
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+| Método | Ruta              | Descripción                         | Acceso      |
+|--------|-------------------|-------------------------------------|-------------|
+| POST   | `/auth/login`     | Login, genera cookie JWT            | Público     |
+| POST   | `/auth/logout`    | Logout, elimina cookie JWT          | Autenticado |
+| GET    | `/admin/privado`  | Prueba de acceso para admins        | ADMIN       |
+| GET    | `/user/perfil`    | Perfil del usuario autenticado      | USER/ADMIN  |
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## ⚙️ Variables importantes
 
-### `npm run build` fails to minify
+### `application.properties` (backend)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```properties
+security.jwt.secret=clave_secreta_segura_de_32_bytes
+spring.jpa.open-in-view=false
+spring.datasource.url=jdbc:mysql://localhost:3306/integrador
+```
+
+### Fetch ejemplo en React
+
+```js
+fetch("http://localhost:8080/admin/privado", {
+  method: "GET",
+  credentials: "include"
+});
+```
+
+---
+
+## 🧔 Autor
+
+- **Juan Camilo Serna Madrid**
+- [GitHub](https://github.com/tuusuario)
+
+---
+
+## 📝 Licencia
+
+Este proyecto está licenciado bajo la licencia MIT.
