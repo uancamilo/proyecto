@@ -63,7 +63,6 @@ public class ProyectoController {
                     )
             }
     )
-
     @PostMapping
     public ResponseEntity<?> crearProyecto(@RequestBody ProyectoRequest request,
                                            @AuthenticationPrincipal UserDetails userDetails) {
