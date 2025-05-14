@@ -1,5 +1,7 @@
 package com.proyecto.integrador.service;
 
+import com.proyecto.integrador.dto.ProyectoRequest;
+import com.proyecto.integrador.mapper.ProyectoMapper;
 import com.proyecto.integrador.model.Proyecto;
 import com.proyecto.integrador.repository.ProyectoRepository;
 import org.springframework.stereotype.Service;
@@ -31,9 +33,14 @@ public class ProyectoService {
         return proyectoRepository.findByIdConCreador(id);
     }
 
-    public Proyecto actualizarProyecto(Proyecto proyecto) {
-        return proyectoRepository.save(proyecto);
+    @Transactional
+    public Optional<Proyecto> actualizarProyecto(Long id, ProyectoRequest request) {
+        return proyectoRepository.findByIdConCreador(id).map(proyecto -> {
+            ProyectoMapper.updateEntity(proyecto, request);
+            return proyectoRepository.save(proyecto);
+        });
     }
+
 
     public void eliminarProyecto(Long id) {
         proyectoRepository.deleteById(id);

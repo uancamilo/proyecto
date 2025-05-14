@@ -162,21 +162,9 @@ public class ProyectoController {
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarProyecto(@PathVariable Long id,
                                                 @RequestBody ProyectoRequest request) {
-        Optional<Proyecto> existente = proyectoService.obtenerPorId(id);
-        if (existente.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Proyecto proyecto = existente.get();
-        proyecto.setNombre(request.getNombre());
-        proyecto.setDescripcion(request.getDescripcion());
-        proyecto.setEstado(Enum.valueOf(com.proyecto.integrador.model.EstadoProyecto.class, request.getEstado()));
-        proyecto.setFechaPostulacion(request.getFechaPostulacion());
-        proyecto.setFechaEntrega(request.getFechaEntrega());
-        proyecto.setValorMonetario(request.getValorMonetario());
-
-        Proyecto actualizado = proyectoService.actualizarProyecto(proyecto);
-        return ResponseEntity.ok(ProyectoMapper.toResponse(actualizado));
+        return proyectoService.actualizarProyecto(id, request)
+                .map(proyecto -> ResponseEntity.ok(ProyectoMapper.toResponse(proyecto)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(
