@@ -65,6 +65,7 @@ public class ProyectoController {
             }
     )
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> crearProyecto(@RequestBody ProyectoRequest request,
                                            @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -188,6 +189,7 @@ public class ProyectoController {
             }
     )
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> eliminarProyecto(@PathVariable Long id) {
         if (proyectoService.obtenerPorId(id).isEmpty()) {
             return ResponseEntity.notFound().build();
