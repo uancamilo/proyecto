@@ -3,6 +3,7 @@ package com.proyecto.integrador.controller;
 import com.proyecto.integrador.dto.*;
 import com.proyecto.integrador.model.UsuarioUser;
 import com.proyecto.integrador.repository.UsuarioRepository;
+import com.proyecto.integrador.security.CustomUserDetails;
 import com.proyecto.integrador.security.JwtCookieUtil;
 import com.proyecto.integrador.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -77,10 +78,14 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getEmail(),
+                            authRequest.getPassword()
+                    )
             );
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
             String token = jwtService.generateToken(userDetails);
 
             ResponseCookie jwtCookie = ResponseCookie.from("jwt", token)
@@ -91,9 +96,15 @@ public class AuthController {
                     .sameSite(isProduction ? "None" : "Lax")
                     .build();
 
+            UsuarioResponse usuarioResponse = new UsuarioResponse(
+                    userDetails.getNombre(),
+                    userDetails.getEmail(),
+                    "ROLE_" + userDetails.getRol()
+            );
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                    .body(new AuthResponse("Login exitoso"));
+                    .body(new AuthResponse("Login exitoso", usuarioResponse));
 
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401)

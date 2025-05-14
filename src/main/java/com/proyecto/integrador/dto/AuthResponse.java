@@ -8,11 +8,18 @@ public class AuthResponse {
     @Schema(description = "Mensaje de éxito", example = "Operación exitosa")
     private String message;
 
-    public AuthResponse() {
-    }
+    @Schema(description = "Datos del usuario autenticado")
+    private UsuarioResponse user;
+
+    public AuthResponse() {}
 
     public AuthResponse(String message) {
         this.message = message;
+    }
+
+    public AuthResponse(String message, UsuarioResponse user) {
+        this.message = message;
+        this.user = user;
     }
 
     public String getMessage() {
@@ -21,5 +28,13 @@ public class AuthResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public UsuarioResponse getUser() {
+        return user;
+    }
+
+    public void setUser(UsuarioResponse user) {
+        this.user = user;
     }
 }
