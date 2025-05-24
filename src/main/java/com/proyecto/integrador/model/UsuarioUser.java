@@ -15,4 +15,8 @@ public class UsuarioUser extends Usuario {
         super(nombre, email, password);
     }
 
+    @Override
+    public String getRol() {
+        return "ROLE_USER";
+    }
 }

@@ -2,6 +2,13 @@ package com.proyecto.integrador.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -13,28 +20,32 @@ public abstract class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "El nombre no puede estar vacío")
     @Column(nullable = false)
     private String nombre;
 
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "Debe ser un email válido")
     @Column(nullable = false, unique = true)
     private String email;
 
     @JsonIgnore
+    @NotBlank(message = "La contraseña es obligatoria")
+    @Size(min = 8, max = 255, message = "La contraseña debe tener entre 8 y 255 caracteres")
     @Column(nullable = false, length = 255)
     private String password;
 
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
     @Transient
-    public String getRol() {
-        if (this instanceof UsuarioAdmin) {
-            return "ROLE_ADMIN";
-        } else if (this instanceof UsuarioUser) {
-            return "ROLE_USER";
-        } else {
-            return "ROLE_UNKNOWN";
-        }
-    }
+    public abstract String getRol();
 
-
+    // Constructores
     public Usuario() {}
 
     public Usuario(String nombre, String email, String password) {
@@ -55,4 +66,7 @@ public abstract class Usuario {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

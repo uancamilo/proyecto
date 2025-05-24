@@ -65,8 +65,7 @@ public class InvitacionController {
                 proyectoOpt.get(),
                 request.getEmail(),
                 invitadorOpt.get(),
-                EstadoInvitacion.PENDIENTE,
-                null
+                EstadoInvitacion.PENDIENTE
         );
 
         Invitacion guardada = invitacionService.guardar(invitacion);

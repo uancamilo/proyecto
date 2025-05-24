@@ -18,8 +18,29 @@ public class InvitacionService {
         this.invitacionRepository = invitacionRepository;
     }
 
+    /**
+     * Guarda una invitación si no existe ya una pendiente para ese email y proyecto.
+     * @throws IllegalArgumentException si ya existe una invitación pendiente para el mismo email y proyecto.
+     */
     public Invitacion guardar(Invitacion invitacion) {
+        Long proyectoId = invitacion.getProyecto().getId();
+        String email = invitacion.getInvitadoEmail();
+
+        boolean yaExiste = invitacionRepository.existsByProyectoIdAndInvitadoEmailAndEstado(
+                proyectoId, email, EstadoInvitacion.PENDIENTE
+        );
+
+        if (yaExiste) {
+            throw new IllegalArgumentException("Ya existe una invitación pendiente para este proyecto y correo.");
+        }
+
+        // Establece fecha y estado por defecto si no está definido
         invitacion.setFechaInvitacion(LocalDateTime.now());
+
+        if (invitacion.getEstado() == null) {
+            invitacion.setEstado(EstadoInvitacion.PENDIENTE);
+        }
+
         return invitacionRepository.save(invitacion);
     }
 
@@ -36,8 +57,7 @@ public class InvitacionService {
     }
 
     public void cambiarEstado(Long id, EstadoInvitacion nuevoEstado) {
-        Optional<Invitacion> invitacion = invitacionRepository.findById(id);
-        invitacion.ifPresent(i -> {
+        invitacionRepository.findById(id).ifPresent(i -> {
             i.setEstado(nuevoEstado);
             invitacionRepository.save(i);
         });

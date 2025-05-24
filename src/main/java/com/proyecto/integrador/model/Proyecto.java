@@ -1,8 +1,13 @@
 package com.proyecto.integrador.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "proyecto")
@@ -12,15 +17,18 @@ public class Proyecto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "El nombre es obligatorio")
     @Column(nullable = false)
     private String nombre;
 
+    @Size(max = 10000, message = "La descripción es demasiado larga")
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
+    @NotNull(message = "El estado es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EstadoProyecto estado;
+    private EstadoProyecto estado = EstadoProyecto.EN_CURSO;
 
     @Column(name = "fecha_publicacion")
     private LocalDate fechaPublicacion;
@@ -31,12 +39,21 @@ public class Proyecto {
     @Column(name = "fecha_entrega")
     private LocalDate fechaEntrega;
 
+    @PositiveOrZero(message = "El valor monetario no puede ser negativo")
     @Column(name = "valor_monetario", precision = 12, scale = 2)
     private BigDecimal valorMonetario;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creado_por_id", nullable = false)
+    @NotNull(message = "El creador del proyecto es obligatorio")
     private Usuario creadoPor;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
     // Constructor vacío requerido por JPA
     public Proyecto() {}
@@ -77,4 +94,8 @@ public class Proyecto {
     public Usuario getCreadoPor() { return creadoPor; }
 
     public void setCreadoPor(Usuario creadoPor) { this.creadoPor = creadoPor; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }
