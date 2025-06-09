@@ -216,6 +216,18 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
         }
 
+        if (userDetails instanceof CustomUserDetails) {
+            CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+
+            UsuarioResponse response = new UsuarioResponse(
+                    customUserDetails.getNombre(),
+                    customUserDetails.getEmail(),
+                    "ROLE_" + customUserDetails.getRol() // Consistente con login
+            );
+
+            return ResponseEntity.ok(response);
+        }
+
         Usuario usuario = usuarioRepository.findByEmail(userDetails.getUsername()).orElse(null);
         if (usuario == null) {
             return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
@@ -229,5 +241,4 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
-
 }
