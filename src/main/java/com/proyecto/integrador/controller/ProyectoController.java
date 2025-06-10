@@ -9,10 +9,15 @@ import com.proyecto.integrador.repository.UsuarioRepository;
 import com.proyecto.integrador.service.ProyectoService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,7 +25,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -35,6 +42,7 @@ public class ProyectoController {
         this.proyectoService = proyectoService;
         this.usuarioRepository = usuarioRepository;
     }
+
     @Operation(
             summary = "Crear un nuevo proyecto",
             description = "Permite a un administrador crear un proyecto con sus detalles y estado inicial.",
@@ -101,6 +109,67 @@ public class ProyectoController {
         return proyectoService.obtenerTodos().stream()
                 .map(ProyectoMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Operation(
+            summary = "Obtener proyectos con paginación",
+            description = "Retorna una lista paginada de proyectos con filtros opcionales.",
+            parameters = {
+                    @Parameter(name = "page", description = "Número de página (0-based)", example = "0"),
+                    @Parameter(name = "size", description = "Tamaño de página", example = "10"),
+                    @Parameter(name = "sort", description = "Campo de ordenamiento", example = "fechaPublicacion"),
+                    @Parameter(name = "direction", description = "Dirección de ordenamiento", example = "desc"),
+                    @Parameter(name = "estado", description = "Filtrar por estado", example = "PUBLICADO"),
+                    @Parameter(name = "busqueda", description = "Búsqueda en nombre y descripción", example = "sistema")
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Lista paginada de proyectos",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Map.class)
+                            )
+                    )
+            }
+    )
+    @GetMapping("/paginado")
+    public ResponseEntity<Map<String, Object>> listarProyectosPaginado(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "fechaPublicacion") String sort,
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String busqueda) {
+
+        if (size > 100) size = 100; // Máximo 100 elementos por página
+        if (page < 0) page = 0;
+
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("desc")
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
+        Sort sortBy = Sort.by(sortDirection, sort);
+
+        Pageable pageable = PageRequest.of(page, size, sortBy);
+
+        Page<Proyecto> proyectosPage = proyectoService.obtenerProyectosFiltrados(estado, busqueda, pageable);
+
+        List<ProyectoResponse> proyectos = proyectosPage.getContent().stream()
+                .map(ProyectoMapper::toResponse)
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("proyectos", proyectos);
+        response.put("currentPage", proyectosPage.getNumber());
+        response.put("totalItems", proyectosPage.getTotalElements());
+        response.put("totalPages", proyectosPage.getTotalPages());
+        response.put("pageSize", proyectosPage.getSize());
+        response.put("hasNext", proyectosPage.hasNext());
+        response.put("hasPrevious", proyectosPage.hasPrevious());
+        response.put("isFirst", proyectosPage.isFirst());
+        response.put("isLast", proyectosPage.isLast());
+
+        return ResponseEntity.ok(response);
     }
 
     @Operation(
