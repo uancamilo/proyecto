@@ -22,6 +22,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     @Query("SELECT COUNT(p) FROM Proyecto p WHERE p.estado = :estado")
     long countByEstado(@Param("estado") EstadoProyecto estado);
 
+    // Métodos existentes para todos los proyectos
     @Query("SELECT p FROM Proyecto p JOIN FETCH p.creadoPor")
     Page<Proyecto> findAllConCreadorPaginated(Pageable pageable);
 
@@ -38,6 +39,37 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
             "(LOWER(p.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR " +
             "LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%')))")
     Page<Proyecto> findByEstadoAndBusquedaConCreadorPaginated(
+            @Param("estado") EstadoProyecto estado,
+            @Param("busqueda") String busqueda,
+            Pageable pageable);
+
+    // Nuevos métodos para filtrar por usuario específico
+    @Query("SELECT p FROM Proyecto p JOIN FETCH p.creadoPor WHERE p.creadoPor.id = :usuarioId")
+    Page<Proyecto> findByUsuarioIdConCreadorPaginated(@Param("usuarioId") Long usuarioId, Pageable pageable);
+
+    @Query("SELECT p FROM Proyecto p JOIN FETCH p.creadoPor WHERE " +
+            "p.creadoPor.id = :usuarioId AND p.estado = :estado")
+    Page<Proyecto> findByUsuarioIdAndEstadoConCreadorPaginated(
+            @Param("usuarioId") Long usuarioId,
+            @Param("estado") EstadoProyecto estado,
+            Pageable pageable);
+
+    @Query("SELECT p FROM Proyecto p JOIN FETCH p.creadoPor WHERE " +
+            "p.creadoPor.id = :usuarioId AND " +
+            "(LOWER(p.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR " +
+            "LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%')))")
+    Page<Proyecto> findByUsuarioIdAndBusquedaConCreadorPaginated(
+            @Param("usuarioId") Long usuarioId,
+            @Param("busqueda") String busqueda,
+            Pageable pageable);
+
+    @Query("SELECT p FROM Proyecto p JOIN FETCH p.creadoPor WHERE " +
+            "p.creadoPor.id = :usuarioId AND " +
+            "p.estado = :estado AND " +
+            "(LOWER(p.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR " +
+            "LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%')))")
+    Page<Proyecto> findByUsuarioIdAndEstadoAndBusquedaConCreadorPaginated(
+            @Param("usuarioId") Long usuarioId,
             @Param("estado") EstadoProyecto estado,
             @Param("busqueda") String busqueda,
             Pageable pageable);

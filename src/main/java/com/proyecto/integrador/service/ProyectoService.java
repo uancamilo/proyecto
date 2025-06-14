@@ -68,6 +68,34 @@ public class ProyectoService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public Page<Proyecto> obtenerProyectosPorUsuario(Long usuarioId, String estado, String busqueda, Pageable pageable) {
+        if (usuarioId == null) {
+            throw new IllegalArgumentException("El ID del usuario no puede ser nulo");
+        }
+
+        EstadoProyecto estadoEnum = parseEstadoProyecto(estado);
+        boolean tieneEstado = estadoEnum != null;
+        boolean tieneBusqueda = busqueda != null && !busqueda.trim().isEmpty();
+
+        // Determinar qué método del repositorio usar según los filtros aplicados
+        if (tieneEstado && tieneBusqueda) {
+            logger.debug("Buscando proyectos del usuario {} con estado {} y búsqueda '{}'",
+                    usuarioId, estadoEnum, busqueda.trim());
+            return proyectoRepository.findByUsuarioIdAndEstadoAndBusquedaConCreadorPaginated(
+                    usuarioId, estadoEnum, busqueda.trim(), pageable);
+        } else if (tieneEstado) {
+            logger.debug("Buscando proyectos del usuario {} con estado {}", usuarioId, estadoEnum);
+            return proyectoRepository.findByUsuarioIdAndEstadoConCreadorPaginated(usuarioId, estadoEnum, pageable);
+        } else if (tieneBusqueda) {
+            logger.debug("Buscando proyectos del usuario {} con búsqueda '{}'", usuarioId, busqueda.trim());
+            return proyectoRepository.findByUsuarioIdAndBusquedaConCreadorPaginated(usuarioId, busqueda.trim(), pageable);
+        } else {
+            logger.debug("Obteniendo todos los proyectos del usuario {}", usuarioId);
+            return proyectoRepository.findByUsuarioIdConCreadorPaginated(usuarioId, pageable);
+        }
+    }
+
     private EstadoProyecto parseEstadoProyecto(String estado) {
         if (estado == null || estado.trim().isEmpty() || "TODOS".equals(estado)) {
             return null;
